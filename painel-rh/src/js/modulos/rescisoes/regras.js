@@ -19,6 +19,11 @@ export function statusAnterior(s) {
   return i > 0 ? STATUS[i - 1] : null;
 }
 
+/** Dias de aviso desta rescisão (ex.: a pessoa vai cumprir 15) ou o padrão das Configurações. */
+export function diasDeAviso(r, cfg) {
+  return Number.isInteger(r.diasAviso) && r.diasAviso >= 0 && r.diasAviso <= 120 ? r.diasAviso : cfg.avisoDias;
+}
+
 /** Valor manual válido para o campo, ou undefined. */
 function manual(r, campo) {
   const v = r.manual && r.manual[campo];
@@ -41,7 +46,8 @@ export function calcularRescisao(r, cfg, cal) {
 
   if (r.tipo === 'trabalhado') {
     definir('inicioAviso', r.dataCarta);
-    definir('fimAviso', somarDias(c.inicioAviso, cfg.avisoDias));
+    c.diasAviso = diasDeAviso(r, cfg);
+    definir('fimAviso', somarDias(c.inicioAviso, c.diasAviso));
     c.desligamento = c.fimAviso;
   } else {
     // Indenizado: sem período de aviso; o desligamento é na data da carta.
@@ -68,8 +74,8 @@ export function calcularRescisao(r, cfg, cal) {
 export function prazosDaRescisao(r, calc) {
   if (r.status !== 'pendente') return [];
   return [
-    { chave: 'linx', acao: 'Lançar rescisão no Linx', prazo: calc.prazoLinx, efetivo: calc.seguraLinx || calc.prazoLinx },
-    { chave: 'pagamento', acao: 'Solicitar pagamento', prazo: calc.prazoPagamento, efetivo: calc.seguraPagamento || calc.prazoPagamento },
+    { chave: 'linx', acao: 'Lançar rescisão no Linx', quando: 'até', prazo: calc.prazoLinx, efetivo: calc.seguraLinx || calc.prazoLinx },
+    { chave: 'pagamento', acao: 'Solicitar pagamento', quando: 'até', prazo: calc.prazoPagamento, efetivo: calc.seguraPagamento || calc.prazoPagamento },
   ];
 }
 
@@ -81,6 +87,8 @@ export function avaliarRescisao(r, calc, agora, cfg) {
 }
 
 /** Nova rescisão a partir do cadastro rápido. */
-export function novaRescisao({ nome, dataCarta, tipo }, id) {
-  return { id, nome: nome.trim(), dataCarta, tipo, status: 'pendente', manual: {} };
+export function novaRescisao({ nome, dataCarta, tipo, diasAviso, status }, id) {
+  const r = { id, nome: nome.trim(), dataCarta, tipo, status: STATUS.includes(status) ? status : 'pendente', manual: {} };
+  if (Number.isInteger(diasAviso)) r.diasAviso = diasAviso;
+  return r;
 }

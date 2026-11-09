@@ -57,7 +57,10 @@ export function calcularFerias(f, cfg, cal) {
   c.fim = somarDias(f.inicio, c.dias - 1);
   c.retorno = somarDias(c.fim, 1);
   definir('dataAviso', somarDias(f.inicio, -cfg.feriasAvisoDias));
-  definir('dataPagamento', somarDias(f.inicio, -cfg.feriasPagamentoDias));
+  // Pagamento numa data exata: N dias ÚTEIS antes do início (padrão) ou N dias corridos.
+  definir('dataPagamento', cfg.feriasPagamentoDiasUteis
+    ? cal.voltarDiasUteis(f.inicio, cfg.feriasPagamentoDias)
+    : somarDias(f.inicio, -cfg.feriasPagamentoDias));
   // Se cair em fim de semana/feriado, recua para o dia útil anterior.
   c.seguraAviso = cal.dataSegura(c.dataAviso);
   c.seguraPagamento = cal.dataSegura(c.dataPagamento);
@@ -72,8 +75,8 @@ export function calcularFerias(f, cfg, cal) {
 /** Prazos que geram alerta: aviso enquanto Pendente; pagamento até ser solicitado. */
 export function prazosDasFerias(f, calc) {
   const p = [];
-  if (f.status === 'pendente') p.push({ chave: 'aviso', acao: 'Entregar aviso de férias', prazo: calc.dataAviso, efetivo: calc.efetivoAviso });
-  if (f.status === 'pendente' || f.status === 'avisado') p.push({ chave: 'pagamento', acao: 'Solicitar pagamento das férias', prazo: calc.dataPagamento, efetivo: calc.efetivoPagamento });
+  if (f.status === 'pendente') p.push({ chave: 'aviso', acao: 'Entregar aviso de férias', quando: 'até', prazo: calc.dataAviso, efetivo: calc.efetivoAviso });
+  if (f.status === 'pendente' || f.status === 'avisado') p.push({ chave: 'pagamento', acao: 'Pagar férias', quando: 'em', prazo: calc.dataPagamento, efetivo: calc.efetivoPagamento });
   return p;
 }
 
@@ -108,6 +111,6 @@ export function previaProximoMes(itens, agora, cfg) {
   };
 }
 
-export function novasFerias({ nome, inicio, dias }, id) {
-  return { id, nome: nome.trim(), inicio, dias, status: 'pendente', manual: {} };
+export function novasFerias({ nome, inicio, dias, status }, id) {
+  return { id, nome: nome.trim(), inicio, dias, status: STATUS.includes(status) ? status : 'pendente', manual: {} };
 }

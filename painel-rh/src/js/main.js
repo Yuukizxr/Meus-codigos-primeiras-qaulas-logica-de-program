@@ -66,18 +66,19 @@ function salvar() {
 
 /* ---------------- Pasta de dados (versão HTML) ---------------- */
 
+/** Indicador discreto na barra lateral (substitui a faixa do topo). */
 function desenharAvisoPasta() {
-  const el = $('aviso-pasta');
+  const el = $('status-pasta');
   const estado = store.estadoPasta();
-  const textos = {
-    'nao-escolhida': ['Seus dados estão guardados só dentro do navegador. Escolha uma pasta para salvar o arquivo e os backups diários.', 'Escolher pasta'],
-    'precisa-permissao': [`O navegador pede autorização para usar a pasta “${store.nomePasta()}”.`, 'Autorizar'],
-    'sem-suporte': ['Este navegador não salva em pasta: os dados ficam só nele. Abra o PainelRH.html no Microsoft Edge ou no Google Chrome.', null],
-  };
-  const t = textos[estado];
-  el.hidden = !t;
-  if (!t) return;
-  el.innerHTML = `${icone('pasta')}<span>${esc(t[0])}</span>${t[1] ? `<button type="button" class="btn btn-pequeno" data-acao="conectar">${esc(t[1])}</button>` : ''}`;
+  const nome = esc(store.nomePasta() || '');
+  const conteudo = {
+    conectada: `<span class="sp-linha" title="Os dados e os backups diários estão sendo gravados nesta pasta">${icone('pasta')}<span>Salvando em <b>${nome}</b></span><span class="ponto ok"></span></span>`,
+    'nao-escolhida': `<button type="button" data-acao="conectar" title="Por enquanto os dados ficam só dentro do navegador">${icone('pasta')}<span>Escolher pasta de dados</span></button><span class="sp-nota">Dados só no navegador</span>`,
+    'precisa-permissao': `<button type="button" class="atencao" data-acao="conectar" title="O navegador pede um clique para liberar a pasta">${icone('pasta')}<span>Autorizar pasta <b>${nome}</b></span><span class="ponto"></span></button>`,
+    'sem-suporte': `<span class="sp-linha">${icone('pasta')}<span>Dados só no navegador</span></span>`,
+  }[estado];
+  el.hidden = !conteudo;
+  el.innerHTML = conteudo || '';
 }
 
 async function conectarPasta(trocar = false) {
@@ -120,7 +121,7 @@ function itemAlerta(a) {
   return `
     <li class="nivel-${nivel}" tabindex="0" data-alvo-tela="${esc(a.alvo.tela)}" data-alvo-id="${esc(a.alvo.id)}">
       <span class="mini-selo">${seloCurto(a)}</span>
-      <span class="quem"><strong>${esc(a.titulo)}</strong><span>${esc(a.acao)} · até ${esc(diaMes(a.data))}</span></span>
+      <span class="quem"><strong>${esc(a.titulo)}</strong><span>${esc(a.acao)} · ${esc(a.quando || 'até')} ${esc(diaMes(a.data))}</span></span>
       <span class="chip nivel-${nivel}">${a.nivel === NIVEL.laranja ? icone('relogio') : ''}${esc(a.texto)}</span>
     </li>`;
 }
@@ -167,6 +168,7 @@ function montarMenu() {
 function irPara(id, destaqueId = null) {
   telaAtual = TELAS.find((t) => t.id === id) || TELAS[0];
   ctx.destaqueId = destaqueId;
+  if (destaqueId) telaAtual.prepararAbertura?.(destaqueId, ctx); // abre na visão Cards, sem filtros
   for (const b of $('menu').querySelectorAll('[data-tela]')) {
     if (b.dataset.tela === telaAtual.id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
@@ -196,7 +198,7 @@ Restaure o backup mais recente da subpasta "backups" (${pasta}) copiando-o por c
   montarMenu();
   desenharFolhinha();
   desenharAvisoPasta();
-  $('aviso-pasta').onclick = (e) => { if (e.target.closest('[data-acao="conectar"]')) conectarPasta(false); };
+  $('status-pasta').onclick = (e) => { if (e.target.closest('[data-acao="conectar"]')) conectarPasta(false); };
   $('faixa-vermelha').onclick = $('faixa-hoje').onclick = aoClicarAlerta;
   $('faixa-vermelha').onkeydown = $('faixa-hoje').onkeydown = aoClicarAlerta;
   irPara(TELAS[0].id);

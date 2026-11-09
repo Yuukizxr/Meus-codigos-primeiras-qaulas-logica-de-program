@@ -3,8 +3,9 @@ import { chaveDoDia, ehDataValida } from '../../datas.js';
 import { NIVEL, NOME_NIVEL } from '../../alertas.js';
 import { novoId } from '../../dados.js';
 import { esc, icone, confirmarDoisCliques } from '../../util.js';
-import { selo, etapas, blocoPrazo, acoes, abas, cabecalho, maisUrgente, animarSaida, diaMes } from '../../componentes.js';
+import { selo, etapas, blocoPrazo, acoes, cabecalho, maisUrgente, animarSaida, diaMes } from '../../componentes.js';
 import { criarLista } from '../lista.js';
+import { painelImportacao, normalizar, lerData, lerInteiro, lerStatus } from '../../importar.js';
 import {
   STATUS, NOME_STATUS, ROTULO_AVANCAR, CAMPOS_EDITAVEIS,
   calcularFerias, avaliarFerias, impedimentoInicio, previaProximoMes, novasFerias, proximoStatus, statusAnterior,
@@ -24,7 +25,7 @@ function alertas(ctx) {
     const { aval } = analisar(f, ctx);
     for (const p of aval.prazos) {
       if (p.nivel < NIVEL.amarelo) continue;
-      lista.push({ nivel: p.nivel, faltam: p.faltam, titulo: f.nome, acao: p.acao, data: p.efetivo, texto: p.texto, alvo: { tela: 'ferias', id: f.id } });
+      lista.push({ nivel: p.nivel, faltam: p.faltam, titulo: f.nome, acao: p.acao, quando: p.quando, data: p.efetivo, texto: p.texto, alvo: { tela: 'ferias', id: f.id } });
     }
   }
   return lista;
@@ -59,7 +60,7 @@ function card({ f, calc, aval }, marcas) {
     ${calc.impedimento ? `<p class="faixa-aviso">${icone('alerta')} ${esc(textoImpedimento(calc.impedimento))}</p>` : ''}
     <div class="prazos">
       ${blocoPrazo('Entregar aviso até', 'dataAviso', calc, calc.seguraAviso, calc.motivoAviso, av.aviso)}
-      ${blocoPrazo('Pagamento até', 'dataPagamento', calc, calc.seguraPagamento, calc.motivoPagamento, av.pagamento)}
+      ${blocoPrazo('Pagar em', 'dataPagamento', calc, calc.seguraPagamento, calc.motivoPagamento, av.pagamento)}
     </div>
     ${acoes(proximoStatus(f.status), statusAnterior(f.status), NOME_STATUS, ROTULO_AVANCAR[f.status])}
   </article>`;
@@ -84,19 +85,75 @@ function menorPrazo(a) {
   return a.aval.prazos.reduce((m, p) => (p.efetivo < m ? p.efetivo : m), a.f.inicio);
 }
 
+function celulaPrazo(x, chave, data) {
+  const p = x.aval.prazos.find((q) => q.chave === chave);
+  return `${esc(diaMes(data))}${p && p.nivel >= NIVEL.amarelo ? ` <span class="chip nivel-${NOME_NIVEL[p.nivel]}">${esc(p.texto)}</span>` : ''}`;
+}
+
 const lista = criarLista({
+  id: 'ferias',
   itens: (ctx) => ctx.dados.ferias.map((f) => analisar(f, ctx)),
+  idDe: (x) => x.f.id,
+  nome: (x) => x.f.nome,
   concluido: (x) => x.f.status === 'pago',
   ordenarAbertas: (a, b) => b.aval.nivel - a.aval.nivel || (menorPrazo(a) < menorPrazo(b) ? -1 : menorPrazo(a) > menorPrazo(b) ? 1 : 0),
   ordenarConcluidas: (a, b) => (a.f.inicio < b.f.inicio ? 1 : -1),
   card,
-  rotuloConcluidas: 'Pagas',
-  vazio: { abertas: 'Nenhuma férias programada. Cadastre acima — nome, início e Enter.', concluidas: 'Nenhuma férias paga ainda.' },
+  vazio: { abertas: 'Nenhuma férias programada. Cadastre acima — nome, início e Enter — ou importe do Excel.', concluidas: 'Nenhuma férias paga ainda.' },
+  status: {
+    lista: STATUS,
+    nomes: NOME_STATUS,
+    de: (x) => x.f.status,
+    mudar: (ctx, id, s) => { const f = ctx.dados.ferias.find((x) => x.id === id); if (f && STATUS.includes(s) && f.status !== s) { f.status = s; ctx.salvar(); } },
+  },
+  resumo: (x) => `${esc(diaMes(x.f.inicio))} · ${x.calc.dias} dias · pagar ${esc(diaMes(x.calc.efetivoPagamento))}${x.calc.impedimento ? ` ${icone('alerta')}` : ''}`,
+  tabela: [
+    { titulo: 'Nome', html: (x) => `<strong>${esc(x.f.nome)}</strong>${x.calc.impedimento ? ` <span title="${esc(textoImpedimento(x.calc.impedimento))}">${icone('alerta')}</span>` : ''}`, chave: (x) => normalizar(x.f.nome) },
+    { titulo: 'Início', html: (x) => esc(diaMes(x.f.inicio)), chave: (x) => x.f.inicio },
+    { titulo: 'Dias', html: (x) => String(x.calc.dias), chave: (x) => x.calc.dias },
+    { titulo: 'Retorno', html: (x) => esc(diaMes(x.calc.retorno)), chave: (x) => x.calc.retorno },
+    { titulo: 'Aviso até', html: (x) => celulaPrazo(x, 'aviso', x.calc.efetivoAviso), chave: (x) => x.calc.efetivoAviso },
+    { titulo: 'Pagar em', html: (x) => celulaPrazo(x, 'pagamento', x.calc.efetivoPagamento), chave: (x) => x.calc.efetivoPagamento },
+    { titulo: 'Status', html: (x) => `<span class="status-txt status-${x.f.status}">${NOME_STATUS[x.f.status]}</span>`, chave: (x) => STATUS.indexOf(x.f.status) },
+  ],
 });
+
+/* ---------------- Importação ---------------- */
+
+const IMPORTACAO = {
+  titulo: 'Férias',
+  exemplo: 'Nome\tInício\tDias\tStatus\nMaria Silva\t01/12/2026\t30\tavisado\nJoão Souza\t11/01/2027\t20',
+  colunas: [
+    { campo: 'nome', titulo: 'Nome', obrigatorio: true, nomes: ['nome', 'funcionario', 'colaborador', 'empregado', 'nome do funcionario'] },
+    { campo: 'inicio', titulo: 'Início', obrigatorio: true, nomes: ['inicio', 'data inicio', 'data de inicio', 'inicio ferias', 'inicio das ferias', 'data', 'saida', 'data saida', 'gozo inicio', 'inicio gozo'] },
+    { campo: 'dias', titulo: 'Dias', nomes: ['dias', 'qtd dias', 'quantidade', 'dias de ferias', 'duracao', 'qtde dias'] },
+    { campo: 'status', titulo: 'Status', nomes: ['status', 'situacao'] },
+  ],
+  converter(v) {
+    const inicio = lerData(v.inicio);
+    if (!inicio) return { erro: `Data inválida: "${v.inicio}"` };
+    const dias = lerInteiro(v.dias, 1, 30);
+    if (dias.erro) return { erro: dias.erro };
+    const st = lerStatus(v.status, {
+      pendente: ['pendente', 'programada', 'programado', 'aberto', 'em aberto'],
+      avisado: ['avisado', 'avisada', 'aviso entregue', 'aviso', 'aviso dado'],
+      solicitado: ['solicitado', 'solicitada', 'pagamento solicitado'],
+      pago: ['pago', 'paga', 'concluido', 'concluida'],
+    });
+    if (st.erro) return { erro: st.erro };
+    return { registro: novasFerias({ nome: v.nome, inicio, dias: dias.valor, status: st.status }, novoId()) };
+  },
+  chave: (f) => `${normalizar(f.nome)}|${f.inicio}`,
+  existentes: (ctx) => ctx.dados.ferias,
+  resumoImportacao: (f, ctx) => {
+    const c = calcularFerias(f, ctx.cfg, ctx.cal);
+    return `${c.dias} dias · aviso até ${esc(diaMes(c.efetivoAviso))} · pagar em ${esc(diaMes(c.efetivoPagamento))} · ${NOME_STATUS[f.status]}${c.impedimento ? ` · ${icone('alerta')} CLT` : ''}`;
+  },
+};
 
 function renderizar(el, ctx) {
   el.innerHTML = `
-    ${cabecalho('Programação', 'Férias')}
+    ${cabecalho('Programação', 'Férias', '<p class="resumo-modulo"></p>')}
     <div id="previa">${previa(ctx)}</div>
     <form id="form-ferias" class="cadastro" autocomplete="off">
       <label class="campo nome">Nome
@@ -111,7 +168,7 @@ function renderizar(el, ctx) {
       <button class="btn" type="submit">${icone('mais')} Cadastrar <kbd>Enter</kbd></button>
       <p class="faixa-aviso cadastro-aviso" id="aviso-inicio" hidden></p>
     </form>
-    ${abas(0, 0, lista.aba, 'Pagas')}
+    ${lista.barra('Pagas')}
     <div id="lista" class="lista"></div>`;
 
   const form = el.querySelector('#form-ferias');
@@ -145,7 +202,15 @@ function renderizar(el, ctx) {
   };
 
   el.onclick = (e) => {
-    if (lista.cliqueAba(e, el, ctx)) return;
+    if (e.target.closest('[data-acao-lista="importar"]')) {
+      painelImportacao(el.querySelector('#importar'), IMPORTACAO, ctx, (registros) => {
+        ctx.dados.ferias.push(...registros);
+        ctx.salvar();
+        el.querySelector('#importar').innerHTML = `<p class="importado">${icone('check')} ${registros.length} ${registros.length === 1 ? 'férias importada' : 'férias importadas'}.</p>`;
+      });
+      return;
+    }
+    if (lista.clique(e, el, ctx)) return;
     const item = e.target.closest('.previa li[data-alvo-id]');
     if (item) { ctx.irPara('ferias', item.dataset.alvoId); return; }
     const btn = e.target.closest('button[data-acao]');
@@ -207,6 +272,8 @@ export default {
   alertas,
   renderizar,
   atualizar,
+  prepararAbertura: (id, ctx) => lista.prepararAbertura(id, ctx),
+  importacao: IMPORTACAO,
   opcoes: {
     titulo: 'Férias',
     campos: [
@@ -214,8 +281,10 @@ export default {
         dica: 'Quantidade de dias que já vem preenchida ao cadastrar férias. Você pode mudar em cada funcionário (de 1 a 30).' },
       { campo: 'feriasAvisoDias', rotulo: 'Antecedência do aviso', unidade: 'dias antes',
         dica: 'Com quantos dias de antecedência o aviso de férias precisa ser entregue (a CLT pede 30). Se a data cair em fim de semana ou feriado, o card mostra o dia útil anterior.' },
-      { campo: 'feriasPagamentoDias', rotulo: 'Antecedência do pagamento', unidade: 'dias antes',
-        dica: 'Quantos dias antes do início as férias precisam estar pagas (a CLT pede 2). Se cair em fim de semana ou feriado, recua para o dia útil anterior. Ex.: início terça 01/12 → pagamento sexta 27/11.' },
+      { campo: 'feriasPagamentoDias', rotulo: 'Pagamento antes do início', unidade: 'dias',
+        dica: 'Quantos dias antes do início as férias são pagas (a CLT pede 2). O card mostra uma data exata em "Pagar em", sempre num dia útil. Ex.: início terça 01/12 → pagar sexta 27/11.' },
+      { campo: 'feriasPagamentoDiasUteis', rotulo: 'Contar o pagamento em dias úteis',
+        dica: 'Ligado (padrão): sábado, domingo e feriados não contam na contagem. Ex.: início segunda 07/12 → pagar quinta 03/12. Desligado: conta dias corridos e, se cair em dia não útil, recua para o dia útil anterior (segunda 07/12 → sexta 04/12).' },
       { campo: 'feriasBloqueioDias', rotulo: 'Dias proibidos antes de folga', unidade: 'dias',
         dica: 'A CLT (art. 134 §3º) proíbe começar férias nos 2 dias antes de feriado ou do descanso semanal (domingo). O painel avisa quando o início cai nesse período. 0 desliga o aviso.' },
       { campo: 'feriasSabadoFolga', rotulo: 'Sábado conta como descanso nessa regra',

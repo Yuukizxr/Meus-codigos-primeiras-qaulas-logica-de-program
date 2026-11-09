@@ -93,5 +93,16 @@ export function criarCalendario(cfg, locais = []) {
     return ehDiaUtil(s) ? null : diaUtilAnterior(s);
   }
 
-  return { feriado, motivoNaoUtil, ehDiaUtil, diaUtilAnterior, dataSegura };
+  /**
+   * Volta N dias ÚTEIS (sábado conforme config, domingo e feriados não contam).
+   * Ex.: 2 dias úteis antes de terça 01/12/2026 → sexta 27/11 (seg 30 = 1, sex 27 = 2).
+   * Com N = 0, devolve a própria data se for útil, senão o dia útil anterior.
+   */
+  function voltarDiasUteis(s, n) {
+    let d = n === 0 && !ehDiaUtil(s) ? diaUtilAnterior(s) : s;
+    for (let i = 0; i < n; i++) d = diaUtilAnterior(d);
+    return d;
+  }
+
+  return { feriado, motivoNaoUtil, ehDiaUtil, diaUtilAnterior, dataSegura, voltarDiasUteis };
 }

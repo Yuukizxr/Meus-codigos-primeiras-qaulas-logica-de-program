@@ -109,8 +109,11 @@ export function maisUrgente(prazos) {
  * Se as animações estiverem desligadas, executa na hora.
  */
 export function animarSaida(el, feito) {
+  let pronto = false;
+  const uma = () => { if (!pronto) { pronto = true; feito(); } };
   el.classList.add('saindo');
   const nome = getComputedStyle(el).animationName;
-  if (!nome || nome === 'none') { feito(); return; }
-  el.addEventListener('animationend', feito, { once: true });
+  if (!nome || nome === 'none' || !nome.includes('sair')) { uma(); return; }
+  el.addEventListener('animationend', (e) => { if (e.animationName === 'sair') uma(); });
+  setTimeout(uma, 600); // garantia: mesmo que o navegador não avise o fim da animação
 }

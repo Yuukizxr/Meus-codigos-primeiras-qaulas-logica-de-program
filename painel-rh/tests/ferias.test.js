@@ -11,10 +11,25 @@ const cfg = { ...CONFIG_PADRAO };
 const cal = criarCalendario(cfg);
 const f = (o = {}) => ({ ...novasFerias({ nome: 'Joana', inicio: '2026-12-01', dias: 30 }, 'f1'), ...o });
 
-test('exemplo: início 01/12/2026 → pagamento sexta 27/11 (2 dias antes, recuando para dia útil)', () => {
+test('exemplo: início 01/12/2026 → pagar na sexta 27/11 (2 dias úteis antes)', () => {
   const c = calcularFerias(f(), cfg, cal);
-  assert.equal(c.dataPagamento, '2026-11-29'); // domingo
-  assert.equal(c.efetivoPagamento, '2026-11-27'); // sexta
+  assert.equal(c.dataPagamento, '2026-11-27'); // seg 30 = 1º dia útil, sex 27 = 2º
+  assert.equal(c.seguraPagamento, null); // já é dia útil: data exata
+  assert.equal(c.efetivoPagamento, '2026-11-27');
+});
+
+test('pagamento em dias úteis: sábado, domingo e feriado não contam', () => {
+  assert.equal(calcularFerias(f({ inicio: '2026-12-07' }), cfg, cal).dataPagamento, '2026-12-03'); // seg → sex 04 (1), qui 03 (2)
+  assert.equal(calcularFerias(f({ inicio: '2026-11-23' }), cfg, cal).dataPagamento, '2026-11-18'); // seg → sex 20 é feriado → qui 19 (1), qua 18 (2)
+  assert.equal(calcularFerias(f({ inicio: '2026-12-10' }), cfg, cal).dataPagamento, '2026-12-08'); // qui → qua 09 (1), ter 08 (2)
+  assert.equal(calcularFerias(f({ inicio: '2026-12-07' }), { ...cfg, feriasPagamentoDias: 0 }, cal).dataPagamento, '2026-12-07');
+  assert.equal(calcularFerias(f({ inicio: '2026-12-06' }), { ...cfg, feriasPagamentoDias: 0 }, cal).dataPagamento, '2026-12-04'); // domingo → sexta
+});
+
+test('pagamento em dias corridos (opção), recuando para dia útil', () => {
+  const c = calcularFerias(f({ inicio: '2026-12-07' }), { ...cfg, feriasPagamentoDiasUteis: false }, cal);
+  assert.equal(c.dataPagamento, '2026-12-05'); // sábado
+  assert.equal(c.efetivoPagamento, '2026-12-04'); // sexta
 });
 
 test('aviso 30 dias antes, recuando para dia útil', () => {
@@ -32,7 +47,7 @@ test('fim e retorno', () => {
 });
 
 test('dias de antecedência vêm das Configurações', () => {
-  const c = calcularFerias(f(), { ...cfg, feriasPagamentoDias: 3, feriasAvisoDias: 35 }, cal);
+  const c = calcularFerias(f(), { ...cfg, feriasPagamentoDias: 3, feriasAvisoDias: 35, feriasPagamentoDiasUteis: false }, cal);
   assert.equal(c.dataPagamento, '2026-11-28'); // sábado → sexta 27
   assert.equal(c.efetivoPagamento, '2026-11-27');
   assert.equal(c.dataAviso, '2026-10-27');

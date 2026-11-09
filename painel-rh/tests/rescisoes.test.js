@@ -57,6 +57,16 @@ test('edição manual: campo editado à mão não é recalculado', () => {
   assert.equal(p.calculado.prazoPagamento, '2026-12-19');
 });
 
+test('dias de aviso por pessoa (ex.: vai cumprir 15 dias)', () => {
+  const c = calcularRescisao(r({ diasAviso: 15 }), cfg, cal);
+  assert.equal(c.diasAviso, 15);
+  assert.equal(c.fimAviso, '2026-11-24');
+  assert.equal(c.prazoPagamento, '2026-12-04');
+  assert.equal(calcularRescisao(r({ diasAviso: 'x' }), cfg, cal).diasAviso, 30); // inválido → padrão
+  assert.equal(novaRescisao({ nome: 'A', dataCarta: '2026-11-09', tipo: 'trabalhado', diasAviso: 20 }, 'z').diasAviso, 20);
+  assert.equal('diasAviso' in novaRescisao({ nome: 'A', dataCarta: '2026-11-09', tipo: 'trabalhado' }, 'z'), false);
+});
+
 test('status: Pendente → Solicitada → Paga', () => {
   assert.equal(proximoStatus('pendente'), 'solicitada');
   assert.equal(proximoStatus('solicitada'), 'paga');
