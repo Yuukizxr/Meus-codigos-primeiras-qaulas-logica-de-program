@@ -2,8 +2,8 @@
    Sem blur e sem backdrop-filter. Degradês só em áreas que não rolam. */
 
 :root {
-  --fonte-texto: "Plex", "Segoe UI", system-ui, sans-serif;
-  --fonte-titulo: "Fraunces", Georgia, "Times New Roman", serif;
+  --fonte-texto: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --fonte-titulo: "Nunito", "Segoe UI", system-ui, sans-serif;
   --raio: 16px;
   --raio-m: 12px;
   --raio-p: 8px;
@@ -74,7 +74,7 @@ button { cursor: pointer; }
   color: inherit;
   min-width: 0;
   font-family: var(--fonte-titulo);
-  font-weight: 600;
+  font-weight: 800;
   font-size: 58px;
   line-height: 1.05;
   margin-top: 6px;
@@ -107,7 +107,7 @@ button { cursor: pointer; }
 h1 {
   margin: 2px 0 0;
   font-family: var(--fonte-titulo);
-  font-weight: 600;
+  font-weight: 800;
   font-size: 36px;
   line-height: 1.1;
   letter-spacing: -.015em;
@@ -115,7 +115,7 @@ h1 {
   -webkit-background-clip: text; background-clip: text; color: transparent;
   display: inline-block;
 }
-h2 { margin: 0 0 10px; font-family: var(--fonte-titulo); font-weight: 600; font-size: 20px; }
+h2 { margin: 0 0 10px; font-family: var(--fonte-titulo); font-weight: 800; font-size: 20px; }
 h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; }
 
 .contagem {
@@ -176,7 +176,7 @@ h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; }
 .alertas li:hover { transform: translateX(3px); }
 .alertas li.nivel-amarelo { background: var(--amarelo-fundo); border-left-color: var(--amarelo-borda); color: var(--amarelo-texto); }
 .alertas li.nivel-laranja { background: var(--laranja-fundo); border-left-color: var(--laranja-borda); color: var(--laranja-texto); }
-.mini-selo { font-family: var(--fonte-titulo); font-weight: 600; font-size: 19px; text-align: center; line-height: 1; }
+.mini-selo { font-family: var(--fonte-titulo); font-weight: 800; font-size: 19px; text-align: center; line-height: 1; }
 .quem { display: flex; flex-direction: column; min-width: 0; }
 .quem strong { font-weight: 700; }
 .quem span { font-size: 13.5px; opacity: .85; }
@@ -269,7 +269,7 @@ kbd {
 .card-titulo { min-width: 0; }
 .card input.card-nome {
   width: 100%; height: 38px; padding: 0 6px; margin-left: -7px;
-  font-family: var(--fonte-titulo); font-weight: 600; font-size: 23px; letter-spacing: -.01em;
+  font-family: var(--fonte-titulo); font-weight: 800; font-size: 23px; letter-spacing: -.01em;
   background: transparent; border: 1px solid transparent; border-radius: 8px;
 }
 .card input.card-nome:hover { border-color: var(--borda); }
@@ -285,7 +285,7 @@ label.inline { display: inline-flex; align-items: center; gap: 6px; font-size: 1
   border-radius: 14px; background: var(--fundo-suave); color: var(--texto);
   border: 1px solid var(--borda);
 }
-.selo-num { font-family: var(--fonte-titulo); font-weight: 600; font-size: 25px; line-height: 1; letter-spacing: -.02em; }
+.selo-num { font-family: var(--fonte-titulo); font-weight: 800; font-size: 25px; line-height: 1; letter-spacing: -.02em; }
 .selo-leg { margin-top: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .75; text-align: center; line-height: 1.1; }
 .selo.nivel-amarelo { background: var(--amarelo-fundo); border-color: var(--amarelo-borda); color: var(--amarelo-texto); }
 .selo.nivel-laranja { background: var(--laranja-borda); border-color: var(--laranja-borda); color: #fff; }
@@ -357,7 +357,7 @@ label.inline { display: inline-flex; align-items: center; gap: 6px; font-size: 1
 .previa ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .previa li { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
 .previa li:hover { background: var(--fundo-suave); }
-.previa li .data { font-family: var(--fonte-titulo); font-weight: 600; min-width: 86px; }
+.previa li .data { font-family: var(--fonte-titulo); font-weight: 800; min-width: 86px; }
 .previa li.feito { opacity: .55; }
 .previa li .ic { color: var(--sucesso); margin-left: auto; }
 

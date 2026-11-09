@@ -72,4 +72,4 @@ e o atributo `data-animacoes` (base do "modo leve").
 
 ## Licenças
 
-Código: [MIT](../LICENSE). Fontes Fraunces e IBM Plex Sans: SIL Open Font License (`src/fonts/OFL-*.txt`).
+Código: [MIT](../LICENSE). Fonte Nunito: SIL Open Font License (`src/fonts/OFL-nunito.txt`).
