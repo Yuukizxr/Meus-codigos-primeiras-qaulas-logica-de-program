@@ -263,3 +263,68 @@ td.acao { width: 1%; white-space: nowrap; }
 .msg-campo { font-size: 12px; color: var(--vermelho-borda); }
 .caminho { font-family: Consolas, "Courier New", monospace; font-size: 13px; word-break: break-all; }
 .painel > h2:first-child { margin-top: 0; }
+
+/* ---------- Tema Aurora (degradê) ----------
+   Degradês estáticos, pintados uma vez: ficam no body e na barra lateral,
+   que não rolam. Sem animação, sem blur, sem backdrop-filter. */
+:root[data-tema="aurora"] {
+  --lateral: #1d1f63;
+  --lateral-texto: #dcd8ff;
+  --lateral-ativo: rgba(255, 255, 255, .16);
+  --fundo: #f1effc;
+  --cartao: #ffffff;
+  --texto: #1d1b3a;
+  --texto-suave: #615d82;
+  --borda: #e2def5;
+  --campo: #ffffff;
+  --primaria: #5b4be0;
+  --primaria-hover: #4a3bcf;
+  --primaria-texto: #ffffff;
+  --sucesso: #0f8a6a;
+  --sombra: 0 2px 10px rgba(70, 50, 160, .08);
+  --aurora-1: #4f46e5;
+  --aurora-2: #8b5cf6;
+  --aurora-3: #06b6d4;
+  color-scheme: light;
+}
+[data-tema="aurora"] body {
+  background: linear-gradient(135deg, #eceeff 0%, #f5eeff 45%, #e6f7f4 100%);
+}
+[data-tema="aurora"] .lateral {
+  background: linear-gradient(180deg, #1d1f63 0%, #3b2a8f 55%, #0e6a78 100%);
+}
+[data-tema="aurora"] .marca {
+  background: linear-gradient(90deg, #ffffff, #a5f3fc);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+[data-tema="aurora"] .menu button[aria-current="page"] { box-shadow: inset 3px 0 0 #67e8f9; }
+[data-tema="aurora"] h1 {
+  background: linear-gradient(90deg, var(--aurora-1), var(--aurora-2) 50%, var(--aurora-3));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  display: inline-block;
+}
+[data-tema="aurora"] .btn {
+  background: linear-gradient(135deg, var(--aurora-1), var(--aurora-2));
+}
+[data-tema="aurora"] .btn:hover {
+  background: linear-gradient(135deg, #4338ca, #7c3aed);
+}
+[data-tema="aurora"] .faixa-hoje {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(90deg, var(--aurora-1), var(--aurora-2), var(--aurora-3)) border-box;
+}
+[data-tema="aurora"] .faixa-vermelha {
+  background: linear-gradient(90deg, #c62828, #e5395b);
+}
+[data-tema="aurora"] .status-solicitada {
+  background: linear-gradient(135deg, var(--aurora-1), var(--aurora-2));
+}
+[data-tema="aurora"] .status-paga {
+  background: linear-gradient(135deg, #0f8a6a, #06b6a4);
+}
+[data-tema="aurora"] .abas button[aria-selected="true"] { border-bottom-color: var(--aurora-2); }
+[data-tema="aurora"] .card:not(.nivel-vermelho) { border-left-color: #c7c2f0; }
+[data-tema="aurora"] .card.nivel-amarelo { border-left-color: var(--amarelo-borda); }
+[data-tema="aurora"] .card.nivel-laranja { border-left-color: var(--laranja-borda); }

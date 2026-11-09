@@ -127,4 +127,6 @@ test('normalizar dados: preenche padrão e corrige inválidos', () => {
   assert.deepEqual(d.rescisoes[0].manual, {});
   assert.deepEqual(d.ferias, []);
   assert.equal(normalizar(null).config.avisoDias, 30);
+  assert.equal(normalizar({ config: { tema: 'aurora' } }).config.tema, 'aurora');
+  assert.equal(normalizar({ config: { tema: 'neon' } }).config.tema, 'claro');
 });

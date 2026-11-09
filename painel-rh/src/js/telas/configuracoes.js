@@ -1,8 +1,10 @@
 // Configurações: todas as regras de prazo ficam aqui (nada fixo no código).
-import { CONFIG_PADRAO } from '../dados.js';
+import { CONFIG_PADRAO, TEMAS } from '../dados.js';
 import { minutosDoHorario } from '../datas.js';
 import { esc } from '../util.js';
 import { pastaDados } from '../store.js';
+
+const NOME_TEMA = { claro: 'Claro', escuro: 'Escuro', aurora: 'Aurora' };
 
 const NUMERICOS = [
   { campo: 'avisoDias', rotulo: 'Duração do aviso trabalhado', ajuda: 'Fim do aviso = início + N dias corridos.', unidade: 'dias', min: 0 },
@@ -43,10 +45,9 @@ function desenhar(el, ctx) {
       <h2>Aparência</h2>
       <div class="config-item">
         <span class="rotulo">Tema</span>
-        <span class="ajuda">Claro ou escuro.</span>
+        <span class="ajuda">Claro, escuro ou Aurora (degradê). Os degradês são estáticos: não pesam no vídeo.</span>
         <span class="controle">
-          <label class="check"><input type="radio" name="tema" data-cfg="tema" value="claro" ${c.tema === 'claro' ? 'checked' : ''}> Claro</label>
-          <label class="check"><input type="radio" name="tema" data-cfg="tema" value="escuro" ${c.tema === 'escuro' ? 'checked' : ''}> Escuro</label>
+          ${Object.entries(NOME_TEMA).map(([v, t]) => `<label class="check"><input type="radio" name="tema" data-cfg="tema" value="${v}" ${c.tema === v ? 'checked' : ''}> ${t}</label>`).join('')}
         </span>
       </div>
     </div>
@@ -67,7 +68,7 @@ function desenhar(el, ctx) {
     const msg = el.querySelector(`[data-msg="${campo}"]`);
     if (msg) msg.textContent = '';
     if (campo === 'sabadoUtil') c.sabadoUtil = inp.checked;
-    else if (campo === 'tema') c.tema = inp.value === 'escuro' ? 'escuro' : 'claro';
+    else if (campo === 'tema') c.tema = TEMAS.includes(inp.value) ? inp.value : CONFIG_PADRAO.tema;
     else if (campo === 'horarioLimite') {
       if (minutosDoHorario(inp.value) === null) { inp.value = c.horarioLimite; if (msg) msg.textContent = 'Horário inválido'; return; }
       c.horarioLimite = inp.value;

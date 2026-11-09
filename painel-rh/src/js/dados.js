@@ -3,6 +3,8 @@
 
 export const VERSAO_DADOS = 1;
 
+export const TEMAS = ['claro', 'escuro', 'aurora'];
+
 export const CONFIG_PADRAO = Object.freeze({
   avisoDias: 30, // fim do aviso = início + N dias
   linxAjusteDias: 0, // prazo Linx = fim do aviso (ou desligamento) + N dias (pode ser negativo)
@@ -29,7 +31,7 @@ export function normalizar(bruto) {
   c.alertaAmareloDias = inteiro(c.alertaAmareloDias, CONFIG_PADRAO.alertaAmareloDias, 0);
   if (!/^\d{2}:\d{2}$/.test(c.horarioLimite)) c.horarioLimite = CONFIG_PADRAO.horarioLimite;
   c.sabadoUtil = c.sabadoUtil === true;
-  c.tema = c.tema === 'escuro' ? 'escuro' : 'claro';
+  c.tema = TEMAS.includes(c.tema) ? c.tema : CONFIG_PADRAO.tema;
   d.config = c;
   for (const k of ['feriadosLocais', 'rescisoes', 'ferias']) if (!Array.isArray(d[k])) d[k] = [];
   for (const r of d.rescisoes) if (!r.manual || typeof r.manual !== 'object') r.manual = {};
