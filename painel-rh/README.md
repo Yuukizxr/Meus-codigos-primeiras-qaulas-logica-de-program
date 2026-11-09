@@ -13,6 +13,11 @@ Instala só para o seu usuário, sem pedir administrador. Depois abra "Painel RH
 
 Requisito: WebView2, que já vem no Windows 11 e no Windows 10 atualizado.
 
+**Aviso do Windows na primeira vez ("O Windows protegeu o computador"):** acontece com qualquer
+programa baixado que ainda não tem assinatura digital paga. Clique em **Mais informações → Executar assim mesmo**.
+Ou, antes de abrir: botão direito no arquivo → **Propriedades** → marque **Desbloquear** → OK.
+Só é preciso fazer isso uma vez.
+
 ## Onde ficam os dados
 
 - `%APPDATA%\painel-rh\dados.json` — um único arquivo JSON.
@@ -70,3 +75,7 @@ src-tauri/           Rust: ler, salvar e backup (sem plugins de rede)
 tests/               testes das funções de data
 scripts/             medição de RAM e dados de exemplo
 ```
+
+## Licença
+
+[MIT](../LICENSE) — uso livre, gratuito, inclusive comercial.

@@ -2,6 +2,7 @@
 name = "painel-rh"
 version = "0.1.0"
 description = "Painel RH - controle local de prazos"
+license = "MIT"
 edition = "2021"
 
 [build-dependencies]
