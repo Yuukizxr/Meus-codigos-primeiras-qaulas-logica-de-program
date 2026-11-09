@@ -6,22 +6,36 @@
        ou, no PowerShell:  powershell -ExecutionPolicy Bypass -File .\medir-ram.ps1
 
   Se o app não estiver aberto, informe o .exe:  .\medir-ram.ps1 -Exe "C:\caminho\painel-rh.exe"
+  Versão HTML (abre um Edge separado só com o painel e mede ele inteiro):
+    .\medir-ram.ps1 -Html "C:\caminho\PainelRH.html"
+  (Para a aba do painel no seu Edge do dia a dia, use o Gerenciador de Tarefas do Edge: Shift+Esc.)
   "Memória" = conjunto de trabalho privado, o mesmo número da coluna Memória do Gerenciador de Tarefas.
 #>
 param(
   [string]$Exe = "",
+  [string]$Html = "",
   [int]$Espera = 30,      # segundos parado antes de medir (só quando o script abre o app)
   [int]$JanelaCpu = 60,   # segundos observando a CPU
   [switch]$Fechar         # fecha o app no fim (usado na automação)
 )
 $ErrorActionPreference = 'Stop'
 
-$app = Get-Process -Name 'painel-rh' -ErrorAction SilentlyContinue | Select-Object -First 1
-if (-not $app) {
-  if (-not $Exe) { Write-Host "O Painel RH não está aberto. Abra o app ou use -Exe."; exit 1 }
-  $app = Start-Process -FilePath $Exe -PassThru
-  Write-Host "App iniciado (PID $($app.Id)). Aguardando $Espera s parado..."
+if ($Html) {
+  $edge = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
+  if (-not (Test-Path $edge)) { $edge = "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe" }
+  $perfil = Join-Path $env:TEMP ("painel-rh-edge-" + (Get-Random))
+  $arquivo = (Resolve-Path $Html).Path
+  $app = Start-Process -FilePath $edge -ArgumentList "--app=`"file:///$($arquivo -replace '\\','/')`"", "--user-data-dir=`"$perfil`"", "--no-first-run", "--no-default-browser-check" -PassThru
+  Write-Host "Edge iniciado só com o painel (PID $($app.Id)). Aguardando $Espera s parado..."
   Start-Sleep -Seconds $Espera
+} else {
+  $app = Get-Process -Name 'painel-rh' -ErrorAction SilentlyContinue | Select-Object -First 1
+  if (-not $app) {
+    if (-not $Exe) { Write-Host "O Painel RH não está aberto. Abra o app ou use -Exe / -Html."; exit 1 }
+    $app = Start-Process -FilePath $Exe -PassThru
+    Write-Host "App iniciado (PID $($app.Id)). Aguardando $Espera s parado..."
+    Start-Sleep -Seconds $Espera
+  }
 }
 
 function Get-Arvore([int]$raiz) {
@@ -72,4 +86,4 @@ Write-Host ("  Memória privada comprometida: {0:N1} MB" -f $priv)
 Write-Host ("CPU parado em {0} s: {1}% (média sobre {2} núcleos)" -f $JanelaCpu, $cpu, $nucleos)
 if ($memoria -gt 150) { Write-Host "ATENÇÃO: acima da meta de 150 MB." } else { Write-Host "Dentro da meta de 150 MB." }
 
-if ($Fechar) { Stop-Process -Id $app.Id -Force -ErrorAction SilentlyContinue }
+if ($Fechar) { foreach ($id in $ids) { Stop-Process -Id $id -Force -ErrorAction SilentlyContinue } }

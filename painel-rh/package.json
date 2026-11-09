@@ -1,14 +1,16 @@
 {
   "name": "painel-rh",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
+    "build:html": "node scripts/gerar-html.mjs",
     "tauri": "tauri"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "2.12.4"
+    "@tauri-apps/cli": "2.12.4",
+    "esbuild": "^0.28.2"
   }
 }

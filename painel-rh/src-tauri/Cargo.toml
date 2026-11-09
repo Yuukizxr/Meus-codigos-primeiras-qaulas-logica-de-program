@@ -1,6 +1,6 @@
 [package]
 name = "painel-rh"
-version = "0.1.0"
+version = "0.2.0"
 description = "Painel RH - controle local de prazos"
 license = "MIT"
 edition = "2021"

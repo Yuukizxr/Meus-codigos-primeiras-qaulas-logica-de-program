@@ -1,87 +1,116 @@
-// Configurações: todas as regras de prazo ficam aqui (nada fixo no código).
-import { CONFIG_PADRAO, TEMAS } from '../dados.js';
-import { minutosDoHorario } from '../datas.js';
-import { esc } from '../util.js';
-import { pastaDados } from '../store.js';
+// Configurações: todas as regras ficam aqui (nada fixo no código).
+// Cada módulo declara as suas em `opcoes` (veja modulos/rescisoes/index.js);
+// esta tela só desenha. A validação vem do ESQUEMA em dados.js.
+import { ESQUEMA, TEMAS, valorValido } from '../dados.js';
+import { esc, icone } from '../util.js';
+import { cabecalho } from '../componentes.js';
+import * as store from '../store.js';
 
-const NOME_TEMA = { claro: 'Claro', escuro: 'Escuro', aurora: 'Aurora' };
+const GERAL = {
+  titulo: 'Geral',
+  campos: [
+    { campo: 'nomeApp', rotulo: 'Nome do painel',
+      dica: 'Aparece no alto da barra lateral e no título da janela. Ex.: "RH Loja Centro".' },
+    { campo: 'tema', rotulo: 'Tema',
+      dica: 'Claro e Escuro são os mais leves. Aurora e Eclipse usam degradês fixos (não se mexem), que também não pesam no computador.' },
+    { campo: 'animacoes', rotulo: 'Animações',
+      dica: 'Movimentos curtos ao abrir telas, cadastrar, mudar status e quando surge um prazo vencido. Nada fica se mexendo parado. Desligue se o computador estiver lento: o painel funciona igual.' },
+  ],
+};
 
-const NUMERICOS = [
-  { campo: 'avisoDias', rotulo: 'Duração do aviso trabalhado', ajuda: 'Fim do aviso = início + N dias corridos.', unidade: 'dias', min: 0 },
-  { campo: 'linxAjusteDias', rotulo: 'Ajuste do prazo para lançar no Linx', ajuda: 'Prazo Linx = fim do aviso (ou desligamento, se indenizado) + N dias corridos. Use número negativo para antecipar.', unidade: 'dias' },
-  { campo: 'pagamentoDias', rotulo: 'Prazo de pagamento', ajuda: 'Prazo = fim do aviso (ou desligamento, se indenizado) + N dias corridos.', unidade: 'dias', min: 0 },
-  { campo: 'alertaAmareloDias', rotulo: 'Alerta amarelo', ajuda: 'Fica amarelo quando faltam até N dias para o prazo.', unidade: 'dias', min: 0 },
-];
+const ALERTAS = {
+  titulo: 'Alertas e calendário',
+  campos: [
+    { campo: 'alertaAmareloDias', rotulo: 'Aviso antecipado (amarelo)', unidade: 'dias antes',
+      dica: 'Com quantos dias de antecedência um prazo aparece em amarelo na faixa "Hoje". Ex.: 3 = começa a avisar 3 dias antes.' },
+    { campo: 'horarioLimite', rotulo: 'Horário limite no dia do prazo',
+      dica: 'No dia do prazo, até que horas a solicitação precisa sair. Até esse horário o prazo fica laranja, com contagem regressiva; depois, vermelho.' },
+    { campo: 'sabadoUtil', rotulo: 'Sábado é dia útil',
+      dica: 'Marque se a empresa trabalha aos sábados. Muda o "dia útil anterior" que o painel indica quando um prazo cai em fim de semana ou feriado.' },
+  ],
+};
+
+/** Botão "?" com o balão de explicação (aparece ao passar o mouse ou focar com Tab). */
+function ajuda(texto) {
+  return `<span class="ajuda"><button type="button" class="ajuda-btn" aria-label="O que é isto?">?</button><span class="ajuda-balao" role="tooltip">${esc(texto)}</span></span>`;
+}
+
+function controle(def, c) {
+  const e = ESQUEMA[def.campo];
+  const v = c[def.campo];
+  if (def.campo === 'tema') {
+    return `<div class="temas">${Object.entries(TEMAS).map(([id, nome]) => `
+      <label class="tema-opcao"><input type="radio" name="tema" data-cfg="tema" value="${id}" ${v === id ? 'checked' : ''}>
+        <span class="amostra amostra-${id}" aria-hidden="true"></span><span>${esc(nome)}</span></label>`).join('')}</div>`;
+  }
+  switch (e.tipo) {
+    case 'booleano':
+      return `<label class="chave"><input type="checkbox" data-cfg="${def.campo}" ${v ? 'checked' : ''}><span class="trilho" aria-hidden="true"></span><span class="chave-txt">${v ? 'Sim' : 'Não'}</span></label>`;
+    case 'texto':
+      return `<input type="text" data-cfg="${def.campo}" maxlength="${e.max}" value="${esc(v)}">`;
+    case 'horario':
+      return `<input type="time" data-cfg="${def.campo}" value="${esc(v)}">`;
+    case 'inteiro':
+      return `<input type="number" step="1" min="${e.min}" max="${e.max}" data-cfg="${def.campo}" value="${v}">${def.unidade ? `<span class="unidade">${esc(def.unidade)}</span>` : ''}`;
+    default:
+      return '';
+  }
+}
+
+function secao(grupo, c) {
+  return `
+    <section class="painel">
+      <h2>${esc(grupo.titulo)}</h2>
+      ${grupo.campos.map((def) => `
+      <div class="config-item">
+        <span class="rotulo">${esc(def.rotulo)} ${ajuda(def.dica)}</span>
+        <span class="controle">${controle(def, c)}<span class="msg-campo" data-msg="${def.campo}"></span></span>
+      </div>`).join('')}
+    </section>`;
+}
+
+function secaoDados() {
+  const estado = store.estadoPasta();
+  const botao = estado === 'app' || estado === 'sem-suporte' ? ''
+    : `<button type="button" class="btn btn-pequeno" data-acao="pasta">${icone('pasta')} ${estado === 'nao-escolhida' ? 'Escolher pasta' : estado === 'precisa-permissao' ? 'Autorizar pasta' : 'Trocar pasta'}</button>`;
+  return `
+    <section class="painel">
+      <h2>Dados</h2>
+      <div class="config-item">
+        <span class="rotulo">Onde ficam ${ajuda('Tudo fica só neste computador: um arquivo dados.json e a subpasta "backups", com uma cópia por dia (ficam as 14 mais recentes). Nada vai para a internet.')}</span>
+        <span class="controle">${botao}</span>
+      </div>
+      <p class="caminho" id="pasta-dados">…</p>
+    </section>`;
+}
 
 function desenhar(el, ctx) {
   const c = ctx.cfg;
-  el.innerHTML = `
-    <h1>Configurações</h1>
-    <div class="painel">
-      <h2>Regras de prazo</h2>
-      ${NUMERICOS.map((n) => `
-      <div class="config-item">
-        <span class="rotulo">${esc(n.rotulo)}</span>
-        <span class="ajuda">${esc(n.ajuda)} Padrão: ${CONFIG_PADRAO[n.campo]}.</span>
-        <span class="controle">
-          <input type="number" step="1" ${n.min !== undefined ? `min="${n.min}"` : ''} data-cfg="${n.campo}" value="${c[n.campo]}"> ${n.unidade}
-          <span class="msg-campo" data-msg="${n.campo}"></span>
-        </span>
-      </div>`).join('')}
-      <div class="config-item">
-        <span class="rotulo">Horário limite no dia do prazo</span>
-        <span class="ajuda">No dia do prazo, a contagem regressiva vai até este horário; depois dele fica vermelho. Padrão: ${CONFIG_PADRAO.horarioLimite}.</span>
-        <span class="controle"><input type="time" data-cfg="horarioLimite" value="${esc(c.horarioLimite)}"><span class="msg-campo" data-msg="horarioLimite"></span></span>
-      </div>
-      <div class="config-item">
-        <span class="rotulo">Sábado é dia útil</span>
-        <span class="ajuda">Usado para decidir se o prazo precisa de "data segura". Padrão: não.</span>
-        <span class="controle"><label class="check"><input type="checkbox" data-cfg="sabadoUtil" ${c.sabadoUtil ? 'checked' : ''}> Sim</label></span>
-      </div>
-      <p class="suave pequeno">Mudar uma regra recalcula as rescisões já cadastradas, exceto as datas editadas à mão no card.</p>
-    </div>
+  const grupos = [GERAL, ALERTAS, ...ctx.modulos.map((m) => m.opcoes).filter(Boolean)];
+  el.innerHTML = `${cabecalho('Ajustes', 'Configurações')}${grupos.map((g) => secao(g, c)).join('')}${secaoDados()}`;
 
-    <div class="painel">
-      <h2>Aparência</h2>
-      <div class="config-item">
-        <span class="rotulo">Tema</span>
-        <span class="ajuda">Claro, escuro ou Aurora (degradê). Os degradês são estáticos: não pesam no vídeo.</span>
-        <span class="controle">
-          ${Object.entries(NOME_TEMA).map(([v, t]) => `<label class="check"><input type="radio" name="tema" data-cfg="tema" value="${v}" ${c.tema === v ? 'checked' : ''}> ${t}</label>`).join('')}
-        </span>
-      </div>
-    </div>
+  store.pastaDados().then((p) => { const x = el.querySelector('#pasta-dados'); if (x) x.textContent = p; }).catch(() => {});
 
-    <div class="painel">
-      <h2>Dados</h2>
-      <p>Os dados ficam só neste computador, em:</p>
-      <p class="caminho" id="pasta-dados">…</p>
-      <p class="suave pequeno">Backup automático uma vez por dia na subpasta <span class="caminho">backups</span> (ficam os 14 mais recentes).</p>
-    </div>`;
-
-  pastaDados().then((p) => { const x = el.querySelector('#pasta-dados'); if (x) x.textContent = p; }).catch(() => {});
+  el.onclick = (e) => {
+    if (e.target.closest('[data-acao="pasta"]')) ctx.conectarPasta(store.estadoPasta() === 'conectada');
+  };
 
   el.onchange = (e) => {
     const inp = e.target;
     const campo = inp.dataset.cfg;
-    if (!campo) return;
+    if (!campo || !ESQUEMA[campo]) return;
     const msg = el.querySelector(`[data-msg="${campo}"]`);
     if (msg) msg.textContent = '';
-    if (campo === 'sabadoUtil') c.sabadoUtil = inp.checked;
-    else if (campo === 'tema') c.tema = TEMAS.includes(inp.value) ? inp.value : CONFIG_PADRAO.tema;
-    else if (campo === 'horarioLimite') {
-      if (minutosDoHorario(inp.value) === null) { inp.value = c.horarioLimite; if (msg) msg.textContent = 'Horário inválido'; return; }
-      c.horarioLimite = inp.value;
-    } else {
-      const def = NUMERICOS.find((n) => n.campo === campo);
-      const v = Number(inp.value);
-      if (!def || !Number.isInteger(v) || (def.min !== undefined && v < def.min)) {
-        inp.value = c[campo];
-        if (msg) msg.textContent = 'Use um número inteiro' + (def && def.min !== undefined ? ` (mínimo ${def.min})` : '');
-        return;
-      }
-      c[campo] = v;
+    const tipo = ESQUEMA[campo].tipo;
+    const v = tipo === 'booleano' ? inp.checked : tipo === 'inteiro' ? Number(inp.value) : tipo === 'texto' ? inp.value.trim() : inp.value;
+    if (!valorValido(campo, v)) {
+      const lim = ESQUEMA[campo];
+      if (msg) msg.textContent = tipo === 'inteiro' ? `Use um número inteiro de ${lim.min} a ${lim.max}` : tipo === 'texto' ? 'Não pode ficar vazio' : 'Valor inválido';
+      if (tipo !== 'booleano') inp.value = c[campo];
+      return;
     }
+    c[campo] = v;
+    if (tipo === 'booleano') { const t = inp.closest('.chave')?.querySelector('.chave-txt'); if (t) t.textContent = v ? 'Sim' : 'Não'; }
     ctx.salvar();
   };
 }
@@ -91,5 +120,6 @@ export default {
   titulo: 'Configurações',
   icone: 'config',
   renderizar: desenhar,
-  atualizar: () => {}, // a tela não depende do relógio; os campos já mostram o valor salvo
+  atualizar: () => {}, // não depende do relógio; os campos já mostram o valor salvo
 };
+

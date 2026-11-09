@@ -1,0 +1,59 @@
+/* Animações: só acontecem quando algo muda (abrir tela, cadastrar, mudar status,
+   surgir prazo vencido, virar o dia). Nenhuma fica rodando com o painel parado,
+   e todas usam apenas opacity/transform (leves até em vídeo integrado).
+   Desligáveis em Configurações > Geral > Animações, e respeitam o "reduzir movimento" do Windows. */
+
+@keyframes surgir { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes estalo { 0% { transform: scale(.55); } 55% { transform: scale(1.22); } 100% { transform: scale(1); } }
+@keyframes selo-entra { from { opacity: 0; transform: scale(.82) rotate(-4deg); } to { opacity: 1; transform: none; } }
+@keyframes sair { to { opacity: 0; transform: translateX(36px) scale(.98); } }
+@keyframes tremer {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); } 40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); } 80% { transform: translateX(2px); }
+}
+@keyframes virar-folha { from { opacity: 0; transform: perspective(500px) rotateX(-95deg); } to { opacity: 1; transform: none; } }
+@keyframes realce { from { box-shadow: 0 0 0 0 var(--realce); } to { box-shadow: 0 0 0 14px transparent; } }
+
+/* Troca de tela: blocos entram em sequência. */
+.tela.entrando > * { animation: surgir .42s var(--curva) backwards; }
+.tela.entrando > :nth-child(2) { animation-delay: .05s; }
+.tela.entrando > :nth-child(3) { animation-delay: .1s; }
+.tela.entrando > :nth-child(4) { animation-delay: .15s; }
+.tela.entrando > :nth-child(n+5) { animation-delay: .2s; }
+
+/* Cards entram em cascata ao abrir a tela ou trocar de aba (nunca no recálculo do minuto). */
+.lista.entrando > .card { animation: surgir .45s var(--curva) backwards; }
+.lista.entrando > .card:nth-child(2) { animation-delay: .05s; }
+.lista.entrando > .card:nth-child(3) { animation-delay: .1s; }
+.lista.entrando > .card:nth-child(4) { animation-delay: .15s; }
+.lista.entrando > .card:nth-child(5) { animation-delay: .2s; }
+.lista.entrando > .card:nth-child(6) { animation-delay: .25s; }
+.lista.entrando > .card:nth-child(n+7) { animation-delay: .3s; }
+.lista.entrando .selo { animation: selo-entra .5s .18s cubic-bezier(.3, 1.4, .5, 1) backwards; }
+
+/* Card recém-cadastrado: entra e pulsa uma vez. */
+.card.novo { animation: surgir .4s var(--curva) backwards, realce 1s .25s ease-out; }
+.card.novo .selo { animation: selo-entra .5s .1s cubic-bezier(.3, 1.4, .5, 1) backwards; }
+/* Card que vai para "Pagas" ou é excluído: desliza para fora. */
+.card.saindo { animation: sair .28s ease-in forwards; pointer-events: none; }
+/* Card aberto a partir de um alerta: pulsa duas vezes. */
+.card.destaque { animation: realce 1s ease-out 2; }
+
+/* Status avançou: a etapa nova dá um "estalo". */
+.etapas li.carimbo .marca { animation: estalo .5s cubic-bezier(.3, 1.5, .5, 1); }
+
+/* Surgiu um prazo vencido: a faixa vermelha treme uma vez. */
+.faixa-vermelha.tremer { animation: tremer .5s ease-in-out; }
+
+/* Virada do dia: a folhinha vira a página. */
+.folhinha.virar .dia, .folhinha.virar .semana { animation: virar-folha .6s var(--curva) backwards; transform-origin: top; }
+
+/* Desligar tudo. */
+:root[data-animacoes="off"] *, :root[data-animacoes="off"] *::before, :root[data-animacoes="off"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

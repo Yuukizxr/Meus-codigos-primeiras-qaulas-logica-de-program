@@ -3,6 +3,7 @@ import { feriadosNacionais, ANOS_EMBUTIDOS } from '../calendario.js';
 import { ehDataValida, chaveDoDia } from '../datas.js';
 import { novoId } from '../dados.js';
 import { esc, icone, dataCurta, confirmarDoisCliques } from '../util.js';
+import { cabecalho } from '../componentes.js';
 
 let anoSelecionado = null;
 
@@ -14,7 +15,7 @@ function desenhar(el, ctx) {
   const locais = [...ctx.dados.feriadosLocais].sort((a, b) => (a.data < b.data ? -1 : 1));
 
   el.innerHTML = `
-    <h1>Feriados</h1>
+    ${cabecalho('Calendário', 'Feriados')}
 
     <div class="painel">
       <h2>Municipais e pontos facultativos</h2>

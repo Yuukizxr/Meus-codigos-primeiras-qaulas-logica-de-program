@@ -1,81 +1,75 @@
-# Painel RH — Etapa 1: Rescisões
+# Painel RH
 
-Painel desktop leve e **100% local** para controlar datas, prazos e alertas de rescisões.
-Não calcula valores (isso fica no Linx People). Sem internet, sem telemetria, sem CDN, sem login.
+Painel leve e **100% local** para controlar prazos de **rescisões** e **férias**.
+Não calcula valores (isso fica no Linx People): só datas, prazos e alertas.
+Sem internet, sem telemetria, sem login. O nome do painel pode ser trocado em Configurações.
 
 ## Como abrir
 
-**Opção 1 — instalador (recomendado):** baixe `Painel RH_0.1.0_x64-setup.exe` em *Releases*
-(ou em *Actions → Painel RH - Windows → artefato `painel-rh-windows`*) e execute.
-Instala só para o seu usuário, sem pedir administrador. Depois abra "Painel RH" pelo menu Iniciar.
+**Recomendado — `PainelRH.html`:** baixe em *Releases* e dê dois cliques (abre no Microsoft Edge).
+É um único arquivo com tudo dentro (fontes, ícones, código). Não instala nada e não é barrado
+pelo Controle Inteligente de Aplicativos do Windows. Dica: no Edge, menu `…` → *Aplicativos* →
+*Instalar este site como aplicativo* para ele abrir numa janela própria, com atalho.
 
-**Opção 2 — portátil:** baixe `PainelRH-portatil.exe` e dê dois cliques. Não precisa instalar.
+Na primeira vez, clique em **Escolher pasta** (ex.: `Documentos\PainelRH`). O painel grava ali:
+- `dados.json` — todos os dados;
+- `backups\dados-AAAA-MM-DD.json` — uma cópia por dia, ficam as 14 mais recentes.
 
-Requisito: WebView2, que já vem no Windows 11 e no Windows 10 atualizado.
+Uma cópia também fica guardada dentro do próprio navegador. Por segurança, o Edge pode pedir
+**um clique para autorizar a pasta** ao abrir o painel; até lá, nada se perde (fica na cópia interna).
 
-**Aviso do Windows na primeira vez ("O Windows protegeu o computador"):** acontece com qualquer
-programa baixado que ainda não tem assinatura digital paga. Clique em **Mais informações → Executar assim mesmo**.
-Ou, antes de abrir: botão direito no arquivo → **Propriedades** → marque **Desbloquear** → OK.
-Só é preciso fazer isso uma vez.
+**Alternativa — aplicativo (`.exe`):** `Painel RH_x64-setup.exe` (instalador) ou `PainelRH-portatil.exe`.
+Os dados ficam em `%APPDATA%\painel-rh`. Sem assinatura digital paga, o Windows pode avisar ou barrar.
 
-## Onde ficam os dados
+## Regras (todas em Configurações, com o botão **?** explicando cada uma)
 
-- `%APPDATA%\painel-rh\dados.json` — um único arquivo JSON.
-- `%APPDATA%\painel-rh\backups\dados-AAAA-MM-DD.json` — backup automático uma vez por dia; ficam os 14 mais recentes.
-- A gravação é segura (arquivo temporário + renomear), então uma queda de energia não corrompe o arquivo.
-- Se o arquivo estiver ilegível, o painel avisa e **não grava nada** até você restaurar um backup.
+**Rescisões:** início do aviso = data da carta; fim = início + 30 dias; indenizado = desligamento na carta;
+lançar no Linx = fim/desligamento + 0 dias; pagamento = fim/desligamento + 10 dias corridos.
+Status: Pendente → Solicitada → Paga.
 
-## Regras (todas em Configurações)
+**Férias:** aviso 30 dias antes do início; pagamento 2 dias antes, recuando para o dia útil anterior
+(ex.: início terça 01/12/2026 → pagamento sexta 27/11); alerta quando o início cai nos 2 dias antes de
+feriado ou domingo (CLT art. 134 §3º); na última semana do mês, prévia dos avisos e pagamentos do mês seguinte.
+Status: Pendente → Avisado → Solicitado → Pago.
 
-| Regra | Padrão |
-|---|---|
-| Início do aviso | data da carta (editável no card) |
-| Fim do aviso | início + 30 dias (editável) |
-| Indenizado | sem aviso; desligamento = data da carta |
-| Prazo para lançar no Linx | fim do aviso/desligamento + 0 dias |
-| Prazo de pagamento | fim do aviso/desligamento + 10 dias corridos |
-| Data segura | se o prazo cai em fim de semana/feriado, mostra o dia útil anterior |
-| Horário limite no dia do prazo | 12:00 |
-| Alerta amarelo | faltam até 3 dias |
-| Sábado é dia útil | não |
+**Alertas** (faixa "Hoje", sobre a data segura): amarelo = faltam até 3 dias; laranja = hoje, com contagem
+regressiva até 12:00; vermelho = passou. Vermelho fica fixo no topo e não pode ser dispensado.
+Quando um prazo cai em fim de semana/feriado, o card mostra o selo 🛡 com o dia útil anterior.
 
-Alertas (enquanto o status é **Pendente**; param em Solicitada/Paga), calculados sobre a data segura:
-amarelo = faltam até N dias · laranja = é hoje, com contagem regressiva até o horário limite ·
-vermelho = passou (ou é hoje e passou do horário limite). Vermelho fica fixo no topo e não pode ser dispensado.
+## Medir a RAM
 
-Datas editadas à mão no card ficam marcadas como "editado" e têm o botão ↺ para voltar ao calculado.
-As datas seguintes são recalculadas a partir delas.
-
-## Medir a RAM no seu PC
-
-Com o app aberto e parado há ~30 s: botão direito em `scripts/medir-ram.ps1` → *Executar com o PowerShell*
-(ou `powershell -ExecutionPolicy Bypass -File .\medir-ram.ps1`). O número "MEMÓRIA TOTAL" soma o app e
-todos os processos do WebView2, como na coluna Memória do Gerenciador de Tarefas.
+- Versão HTML no seu Edge: `Shift+Esc` abre o Gerenciador de Tarefas do Edge, com a memória da aba.
+- `scripts/medir-ram.ps1` mede o `.exe` aberto, ou `-Html PainelRH.html` (abre um Edge separado só com o painel).
 
 ## Para desenvolvedores
 
 ```
 npm ci
-npm test                                   # testes das funções de data (node:test, sem dependências)
-cargo test --manifest-path src-tauri/Cargo.toml   # gravação e backup
-npx tauri build                            # gera o .exe e o instalador (no Windows)
+npm test               # testes das regras de data, rescisões, férias e configurações (node:test)
+npm run build:html     # gera dist/PainelRH.html (esbuild só na geração; o app não usa bibliotecas)
+cargo test --manifest-path src-tauri/Cargo.toml   # gravação e backup do .exe
+npx tauri build        # gera o .exe e o instalador (no Windows)
 ```
 
-Estrutura:
-
 ```
-src/                 interface (HTML/CSS/JS puro, sem framework)
+src/
+  index.html, css/ (fontes, temas, base, animacoes), fonts/ (OFL)
   js/datas.js        datas "AAAA-MM-DD" em horário local (sem UTC)
-  js/calendario.js   Páscoa, feriados nacionais, dia útil, data segura
-  js/alertas.js      níveis de alerta (compartilhado pelos módulos)
+  js/calendario.js   Páscoa, feriados, dia útil, data segura
+  js/alertas.js      níveis de alerta
   js/relogio.js      um único timer: minuto, virada do dia, volta da suspensão
-  js/modulos/        um módulo por assunto (rescisoes/; etapa 2: ferias/)
+  js/store.js        dados: .exe (Rust) ou navegador (IndexedDB + pasta escolhida)
+  js/componentes.js  peças de interface compartilhadas
+  js/modulos/        rescisoes/, ferias/, lista.js e _modelo/ (esqueleto para novos módulos)
   js/telas/          feriados e configurações
-src-tauri/           Rust: ler, salvar e backup (sem plugins de rede)
-tests/               testes das funções de data
-scripts/             medição de RAM e dados de exemplo
+src-tauri/           versão .exe (Rust: ler, salvar, backup)
+tests/               testes
 ```
 
-## Licença
+Esqueletos para as próximas etapas: `js/modulos/_modelo/` (novo módulo, ex.: lembretes mensais),
+`TEMAS` em `js/dados.js` + `css/temas.css` (novos temas), `ESQUEMA` em `js/dados.js` (novas configurações),
+e o atributo `data-animacoes` (base do "modo leve").
 
-[MIT](../LICENSE) — uso livre, gratuito, inclusive comercial.
+## Licenças
+
+Código: [MIT](../LICENSE). Fontes Fraunces e IBM Plex Sans: SIL Open Font License (`src/fonts/OFL-*.txt`).

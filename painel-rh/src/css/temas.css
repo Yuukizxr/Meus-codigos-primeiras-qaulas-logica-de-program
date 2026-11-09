@@ -1,0 +1,151 @@
+/* Temas: só variáveis de cor. Para criar um tema novo, copie um bloco,
+   troque o nome e acrescente o nome em TEMAS (js/dados.js). */
+
+/* ---------- Claro: papel e tinta ---------- */
+:root {
+  --fundo-pagina: #f3efe6;
+  --fundo-suave: #ece6d8;
+  --cartao: #fffcf5;
+  --texto: #1b2230;
+  --texto-suave: #6a6456;
+  --borda: #e2dbca;
+  --borda-forte: #cbc2ab;
+  --campo: #fffdf8;
+  --primaria: #2346a8;
+  --primaria-suave: #e2e8f7;
+  --botao-fundo: #1b2230;
+  --botao-texto: #fffcf5;
+  --sucesso: #2c7a4b;
+  --titulo: #1b2230;
+
+  --lateral-fundo: #14233f;
+  --lateral-texto: #cdd6e6;
+  --lateral-ativo: rgba(255, 255, 255, .1);
+  --lateral-marca: #ffffff;
+  --folha-fundo: #fffcf5;
+  --folha-texto: #1b2230;
+  --folha-topo: #c8432f;
+
+  --amarelo-fundo: #fbf0c9; --amarelo-borda: #d4a514; --amarelo-texto: #5c4500;
+  --laranja-fundo: #fde3cf; --laranja-borda: #e06d10; --laranja-texto: #6e3200;
+  --vermelho-fundo: #fbe1de; --vermelho-borda: #c62f25; --vermelho-texto: #85150f;
+  --vermelho-faixa: #b3261e;
+  --vermelho-card: #fcefec;
+
+  --balao-fundo: #1b2230;
+  --balao-texto: #f6f2e8;
+  --sombra: 0 1px 2px rgba(27, 34, 48, .06), 0 8px 24px -12px rgba(27, 34, 48, .18);
+  --realce: rgba(35, 70, 168, .45);
+  color-scheme: light;
+}
+
+/* ---------- Escuro ---------- */
+:root[data-tema="escuro"] {
+  --fundo-pagina: #12151b;
+  --fundo-suave: #1a1e26;
+  --cartao: #1d222b;
+  --texto: #ebe6db;
+  --texto-suave: #9aa1ad;
+  --borda: #2a303b;
+  --borda-forte: #3b4351;
+  --campo: #161a21;
+  --primaria: #8fb0ff;
+  --primaria-suave: #1f2a44;
+  --botao-fundo: #ebe6db;
+  --botao-texto: #12151b;
+  --sucesso: #5cc98d;
+  --titulo: #f3eee3;
+
+  --lateral-fundo: #0c1220;
+  --lateral-texto: #c3cbd9;
+  --lateral-ativo: rgba(255, 255, 255, .08);
+  --folha-fundo: #1d222b;
+  --folha-texto: #ebe6db;
+  --folha-topo: #b8452f;
+
+  --amarelo-fundo: #352c12; --amarelo-borda: #c9a316; --amarelo-texto: #f1d98a;
+  --laranja-fundo: #3d2612; --laranja-borda: #ec8a2c; --laranja-texto: #ffc58f;
+  --vermelho-fundo: #3f1918; --vermelho-borda: #ef5a50; --vermelho-texto: #ffb1aa;
+  --vermelho-faixa: #9e231c;
+  --vermelho-card: #261a1c;
+
+  --balao-fundo: #ebe6db;
+  --balao-texto: #12151b;
+  --sombra: none;
+  --realce: rgba(143, 176, 255, .5);
+  color-scheme: dark;
+}
+
+/* ---------- Aurora: degradê índigo → turquesa, base clara ---------- */
+:root[data-tema="aurora"] {
+  --fundo-pagina: linear-gradient(135deg, #eceeff 0%, #f5eeff 45%, #e6f7f4 100%);
+  --fundo-suave: #f1effc;
+  --cartao: #ffffff;
+  --texto: #1d1b3a;
+  --texto-suave: #615d82;
+  --borda: #e2def5;
+  --borda-forte: #c9c3ec;
+  --campo: #ffffff;
+  --primaria: #5b4be0;
+  --primaria-suave: #ebe8fd;
+  --botao-fundo: linear-gradient(135deg, #4f46e5, #8b5cf6);
+  --botao-texto: #ffffff;
+  --sucesso: #0f8a6a;
+  --titulo: linear-gradient(90deg, #4f46e5, #8b5cf6 50%, #06b6d4);
+
+  --lateral-fundo: linear-gradient(180deg, #1d1f63 0%, #3b2a8f 55%, #0e6a78 100%);
+  --lateral-texto: #dcd8ff;
+  --lateral-ativo: rgba(255, 255, 255, .16);
+  --folha-fundo: #ffffff;
+  --folha-texto: #1d1b3a;
+  --folha-topo: linear-gradient(90deg, #4f46e5, #06b6d4);
+
+  --amarelo-fundo: #fff5d1; --amarelo-borda: #d9a900; --amarelo-texto: #5f4800;
+  --laranja-fundo: #ffe4cc; --laranja-borda: #ee7600; --laranja-texto: #723600;
+  --vermelho-fundo: #fde0e0; --vermelho-borda: #d32f2f; --vermelho-texto: #8c1515;
+  --vermelho-faixa: linear-gradient(90deg, #c62828, #e5395b);
+  --vermelho-card: #fff1f3;
+
+  --balao-fundo: #1d1b3a;
+  --balao-texto: #f1effc;
+  --sombra: 0 2px 10px rgba(70, 50, 160, .08);
+  --realce: rgba(91, 75, 224, .45);
+  color-scheme: light;
+}
+
+/* ---------- Eclipse: meio escuro, vermelho e azul ---------- */
+:root[data-tema="eclipse"] {
+  --fundo-pagina: linear-gradient(150deg, #1c2442 0%, #262043 48%, #3a1d34 100%);
+  --fundo-suave: #2c3352;
+  --cartao: #252b45;
+  --texto: #eef0f8;
+  --texto-suave: #aab1c9;
+  --borda: #363e5e;
+  --borda-forte: #4c5679;
+  --campo: #1f2440;
+  --primaria: #8aa4ff;
+  --primaria-suave: rgba(124, 155, 255, .16);
+  --botao-fundo: linear-gradient(135deg, #e2445f, #4f6fe6);
+  --botao-texto: #ffffff;
+  --sucesso: #57d39a;
+  --titulo: linear-gradient(90deg, #ff6f86, #8aa4ff);
+
+  --lateral-fundo: linear-gradient(180deg, #8f1f3a 0%, #4a2257 50%, #1f3b8a 100%);
+  --lateral-texto: #f1e6ee;
+  --lateral-ativo: rgba(255, 255, 255, .16);
+  --folha-fundo: #f6f3fa;
+  --folha-texto: #1d2240;
+  --folha-topo: linear-gradient(90deg, #e2445f, #4f6fe6);
+
+  --amarelo-fundo: #3b3418; --amarelo-borda: #d8b02a; --amarelo-texto: #f6de92;
+  --laranja-fundo: #452c1c; --laranja-borda: #f28b3c; --laranja-texto: #ffc9a0;
+  --vermelho-fundo: #4a1e2c; --vermelho-borda: #ff5c74; --vermelho-texto: #ffb8c3;
+  --vermelho-faixa: linear-gradient(90deg, #b3203d, #d9365a);
+  --vermelho-card: #36223a;
+
+  --balao-fundo: #f6f3fa;
+  --balao-texto: #1d2240;
+  --sombra: 0 8px 24px -14px rgba(0, 0, 0, .6);
+  --realce: rgba(255, 111, 134, .5);
+  color-scheme: dark;
+}

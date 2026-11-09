@@ -130,3 +130,15 @@ test('normalizar dados: preenche padrão e corrige inválidos', () => {
   assert.equal(normalizar({ config: { tema: 'aurora' } }).config.tema, 'aurora');
   assert.equal(normalizar({ config: { tema: 'neon' } }).config.tema, 'claro');
 });
+
+test('configurações: nome do painel, tema Eclipse e limites do esquema', async () => {
+  const { valorValido } = await import('../src/js/dados.js');
+  assert.equal(normalizar({ config: { nomeApp: '  RH Loja Centro ' } }).config.nomeApp, 'RH Loja Centro');
+  assert.equal(normalizar({ config: { nomeApp: '' } }).config.nomeApp, 'Painel RH');
+  assert.equal(normalizar({ config: { tema: 'eclipse' } }).config.tema, 'eclipse');
+  assert.equal(normalizar({ config: { animacoes: 'sim' } }).config.animacoes, true);
+  assert.equal(valorValido('linxAjusteDias', -2), true);
+  assert.equal(valorValido('feriasDiasPadrao', 31), false);
+  assert.equal(valorValido('horarioLimite', '24:00'), false);
+  assert.deepEqual(normalizar({ ferias: [{ id: 1 }] }).ferias[0].manual, {});
+});
