@@ -6,6 +6,15 @@ on:
     tags: ['painel-rh-v*']
     paths: ['painel-rh/**', '.github/workflows/painel-rh-windows.yml']
   workflow_dispatch:
+    inputs:
+      publicar:
+        description: 'Publicar uma versão (Release) com o instalador'
+        type: boolean
+        default: false
+      versao:
+        description: 'Nome da tag da versão'
+        type: string
+        default: 'painel-rh-v0.1.0'
 
 permissions:
   contents: write
@@ -61,9 +70,18 @@ jobs:
           name: painel-rh-windows
           path: painel-rh/saida/*
 
-      - name: Publicar versão (somente em tag)
-        if: startsWith(github.ref, 'refs/tags/painel-rh-v')
+      - name: Publicar versão (em tag ou quando pedido manualmente)
+        if: startsWith(github.ref, 'refs/tags/painel-rh-v') || inputs.publicar
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.versao }}
+          target_commitish: ${{ github.sha }}
+          name: Painel RH 0.1.0 — Etapa 1 (Rescisões)
           prerelease: true
+          body: |
+            Etapa 1: controle local de prazos de rescisões.
+            - `Painel RH_0.1.0_x64-setup.exe`: instalador (só para o seu usuário, sem administrador).
+            - `PainelRH-portatil.exe`: versão portátil, sem instalar.
+            - `medir-ram.ps1`: mede a RAM com o app aberto.
+            - `medicao-ram.txt`: medição feita no Windows do GitHub.
           files: painel-rh/saida/*
